@@ -1,0 +1,21 @@
+# OS generated files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
+
+# Sensitive credentials & tokens
+*.token
+*.pat
+*.pem
+*.key
+oauth_creds.json
+google_accounts.json
+installation_id
+
+# Temporary & Log files
+*.log
+*.tmp
+temp/
+tmp/
