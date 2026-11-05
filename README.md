@@ -1,6 +1,6 @@
 # Antigravity Environment Sync Repository
 
-Google Antigravity의 전역 규칙(`GEMINI.md`) 및 실무 검증된 커스텀 스킬 12종을 다른 컴퓨터에 원클릭으로 복제·동기화하기 위한 통합 설정 저장소입니다.
+Google Antigravity의 전역 규칙(`GEMINI.md`), 커스텀 스킬 12종, 안전 삭제 유틸리티 및 영구 삭제 방지 가드 훅을 다른 컴퓨터에 원클릭으로 복제·동기화하기 위한 통합 설정 저장소입니다.
 
 ---
 
@@ -9,10 +9,10 @@ Google Antigravity의 전역 규칙(`GEMINI.md`) 및 실무 검증된 커스텀 
 새 컴퓨터에서 안티그래비티(Antigravity)를 켠 후, 대화창에 아래 1줄 지시문(저장소 주소 포함)을 그대로 입력하십시오:
 
 ```text
-<이_저장소의_깃허브_주소> 저장소를 클론한 뒤, 저장소 내 SETUP.md 지침에 따라 내 컴퓨터의 안티그래비티 전역 환경(~/.gemini/config/)에 규칙과 스킬들을 설치해줘.
+https://github.com/Kang4421/antigravity-dotfiles.git 저장소를 클론한 뒤, 저장소 내 SETUP.md 지침에 따라 내 컴퓨터의 안티그래비티 전역 환경(~/.gemini/)에 규칙, 스킬, 스크립트를 설치해줘.
 ```
 
-> **동작 원리**: Antigravity AI가 이 저장소의 [`SETUP.md`](SETUP.md) 지침을 읽고, 현재 PC의 사용자 경로를 스스로 인식하여 전역 규칙과 12종 스킬을 완전 무인으로 자동 배치합니다.
+> **동작 원리**: Antigravity AI가 이 저장소의 [`SETUP.md`](SETUP.md) 지침을 읽고, 현재 PC의 사용자 경로를 스스로 인식하여 전역 규칙, 12종 스킬, 안전 삭제 스크립트, 가드 훅을 완전 무인으로 자동 배치합니다.
 
 ---
 
@@ -22,8 +22,8 @@ PowerShell 터미널에서 직접 실행하려면 아래 명령어를 입력하�
 
 ```powershell
 # 1. 저장소 클론 (또는 ZIP 다운로드 후 압축 해제)
-git clone <이_저장소의_깃허브_주소>.git
-cd <저장소_폴더명>
+git clone https://github.com/Kang4421/antigravity-dotfiles.git
+cd antigravity-dotfiles
 
 # 2. 원클릭 설치 스크립트 실행
 powershell -ExecutionPolicy Bypass -File .\install.ps1
@@ -41,7 +41,7 @@ powershell -ExecutionPolicy Bypass -File .\install.ps1
 
 ### 2. 커스텀 스킬 12종 (`skills/`)
 1. **`artifact-design`**: 단독 정적 HTML/CSS 웹 산출물 전용 디자인 가이드
-2. **`deep-interview`**: 소크라테스식 1문 1답 모호성 소거 기반 요구사항 구체화 엔진
+2. **`deep-interview`**: 소크라테스식 1문 1답 모호성 소거 기반 요구사항 구체화 엔진 (v6.6 / 챌린지 모드, 비전문가 언어 필터 탑재)
 3. **`directive-generator`**: 군더더기 없는 고밀도 명령형 실행 지시문 생성기
 4. **`execution-plan`**: 사전 실사 및 승인 게이트 기반 범용 작업 플래닝 엔진
 5. **`find-skill`**: 외부 스킬을 탐색하여 Antigravity 표준 규격으로 변환/설치
@@ -53,19 +53,19 @@ powershell -ExecutionPolicy Bypass -File .\install.ps1
 11. **`searchmode`**: 증거 우선 팩트체크 및 딥 리서치 엔진
 12. **`xlsx`**: 스프레드시트(.xlsx, .csv) 생성, 수식 계산, 클렌징 처리 스킬
 
+### 3. 안전 삭제 유틸리티 및 가드 훅 (`scripts/`, `hooks.json`)
+- **`recycle.ps1` / `recycle.cmd`**: 영구 삭제 대신 Windows 휴지통으로 안전하게 이동시키는 명령어 스크립트
+- **`check_delete_guard.py`**: 터미널 명령 실행(`run_command`) 전 `rm`, `Remove-Item` 등의 영구 삭제 패턴을 사전 감지하여 즉시 차단
+- **`hooks.json`**: Antigravity PreToolUse 보안 훅 설정 (설치 시 대상 PC 경로에 맞게 자동 바인딩)
+
 ---
 
-## 🚀 깃허브 원격 저장소 연결 및 푸시 가이드
+## 🚀 깃허브 푸시 및 업데이트 방법
 
-GitHub 웹사이트에서 빈 새 리포지토리(New repository)를 생성한 후, 이 폴더(`Desktop\github`)의 PowerShell에서 아래 명령을 실행하십시오:
+설정을 수정한 후 변경 사항을 깃허브에 반영하려면:
 
 ```powershell
-# main 브랜치 지정
-git branch -M main
-
-# 깃허브 원격 저장소 연결 (본인의 깃허브 URL 입력)
-git remote add origin https://github.com/<사용자ID>/<저장소명>.git
-
-# 원격 저장소로 업로드
-git push -u origin main
+git add .
+git commit -m "Update antigravity global config, skills, and guard hooks"
+git push origin main
 ```

@@ -5,7 +5,7 @@ Desktop.ini
 $RECYCLE.BIN/
 .DS_Store
 
-# Sensitive credentials & tokens
+# Sensitive credentials & tokens & local configs
 *.token
 *.pat
 *.pem
@@ -13,9 +13,15 @@ $RECYCLE.BIN/
 oauth_creds.json
 google_accounts.json
 installation_id
+settings.json*
+mcp_config.json*
+projects.json
+state.json
+trustedFolders.json
 
-# Temporary & Log files
+# Temporary & Log files & backups
 *.log
 *.tmp
+*.bak
 temp/
 tmp/
