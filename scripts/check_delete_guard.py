@@ -1,4 +1,4 @@
-import sys
+﻿import sys
 import json
 import re
 
@@ -54,3 +54,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

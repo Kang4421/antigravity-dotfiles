@@ -459,10 +459,10 @@ Define the persona, expertise, and tone.
 
 ## 📚 참조 문서 (References)
 
-* [원본 템플릿 레퍼런스](references/templates.md): Basic, Planning, Analytical, Persona, Format 등 원작 저장소의 핵심 프롬프트 모음
-* [전문가 직무 프리셋 카탈로그 (69종)](references/presets_index.md): 16개 도메인(기술, 기획, 경영, 마케팅, 재무, 법률 등)의 실무 검증된 69종 직무별 프롬프트 프리셋
-* [프롬프트 엔지니어링 프레임워크](references/frameworks.md): CRISPE, CLEAR, Few-shot 설계 지침 및 변수 처리 규칙
-* [실전 최적화 예시집](references/examples.md): 코딩, 분석, 문서 작성, 이미지 생성 전후 비교 예시
+* [원본 템플릿 레퍼런스](file:///C:/Users/KangHyeonwoo/.gemini/config/skills/prompt-optimizer/references/templates.md): Basic, Planning, Analytical, Persona, Format 등 원작 저장소의 핵심 프롬프트 모음
+* [전문가 직무 프리셋 카탈로그 (69종)](file:///C:/Users/KangHyeonwoo/.gemini/config/skills/prompt-optimizer/references/presets_index.md): 16개 도메인(기술, 기획, 경영, 마케팅, 재무, 법률 등)의 실무 검증된 69종 직무별 프롬프트 프리셋
+* [프롬프트 엔지니어링 프레임워크](file:///C:/Users/KangHyeonwoo/.gemini/config/skills/prompt-optimizer/references/frameworks.md): CRISPE, CLEAR, Few-shot 설계 지침 및 변수 처리 규칙
+* [실전 최적화 예시집](file:///C:/Users/KangHyeonwoo/.gemini/config/skills/prompt-optimizer/references/examples.md): 코딩, 분석, 문서 작성, 이미지 생성 전후 비교 예시
 
 ---
 **출처**: [linshenkx/prompt-optimizer](https://github.com/linshenkx/prompt-optimizer) (GNU AGPL-3.0) & [alirezarezvani/claude-code-skill-factory](https://github.com/alirezarezvani/claude-code-skill-factory) (Presets) & Custom Prompt-Generator Architecture (Lossless Editing, Priority Resolution, Verification Loop, Token Efficiency Threshold, Reasoning Strategy, XRP Feedback, Agent Architecture, Modification Protocol)
