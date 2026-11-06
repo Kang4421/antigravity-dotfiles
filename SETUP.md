@@ -7,7 +7,7 @@
 ## 1. 실행 목표 (Objective)
 저장소에 포함된 다음 구성 요소를 현재 컴퓨터의 Antigravity 전역 환경으로 무결점 배포·동기화합니다:
 1. **전역 규칙 (`GEMINI.md`)**: 영구 삭제 금지, 휴지통 이동 의무화, 한국어 사고, 스킬 로컬 스코프 원칙 등
-2. **커스텀 스킬 12종 (`skills/`)**: deep-interview (v6.6), searchmode, execution-plan 등
+2. **커스텀 스킬 14종 (`skills/`)**: deep-interview (v6.6), searchmode, execution-plan 등
 3. **안전 삭제 유틸리티 (`scripts/`)**: `recycle.ps1`, `recycle.cmd`, `check_delete_guard.py`
 4. **영구 삭제 방지 가드 훅 (`hooks.json`)**: `run_command` 실행 전 영구 삭제 패턴 차단 훅
 
@@ -76,10 +76,11 @@ if ($userPath -notlike "*$targetScripts*") {
 ## 4. 설치 후 자체 검증 (Verification Checklist)
 AI는 설치 완료 후 반드시 아래 항목을 터미널로 검증합니다:
 1. `$HOME\.gemini\config\GEMINI.md` 및 `$HOME\.gemini\GEMINI.md` 파일 존재 확인
-2. `$HOME\.gemini\config\skills\` 내 12개 스킬 디렉터리가 모두 생성되었는지 확인:
-   - `artifact-design`, `deep-interview`, `directive-generator`, `execution-plan`
-   - `find-skill`, `list-up`, `pdf`, `pptx`
-   - `prompt-optimizer`, `reverse-engineer-anything`, `searchmode`, `xlsx`
+2. `$HOME\.gemini\config\skills\` 내 14개 스킬 디렉터리가 모두 생성되었는지 확인:
+   - `artifact-design`, `deep-interview`, `directive-generator`, `ego-browser`
+   - `execution-plan`, `export-transcript`, `find-skill`, `list-up`
+   - `pdf`, `pptx`, `prompt-optimizer`, `reverse-engineer-anything`
+   - `searchmode`, `xlsx`
 3. `$HOME\.gemini\scripts\` 내 스크립트 3종(`recycle.ps1`, `recycle.cmd`, `check_delete_guard.py`) 존재 확인
 4. `$HOME\.gemini\hooks.json` 및 `$HOME\.gemini\config\hooks.json` 파일 존재 및 경로 유효성 확인
 
@@ -91,7 +92,7 @@ AI는 설치 완료 후 반드시 아래 항목을 터미널로 검증합니다:
 ```text
 안티그래비티 환경 세팅이 완료되었습니다.
 - 전역 규칙 적용: ~/.gemini/config/GEMINI.md (영구 삭제 방지, 한국어 사고, 스킬 스코프 원칙 등)
-- 커스텀 스킬 12종 설치 완료: deep-interview (v6.6), searchmode, execution-plan 등
+- 커스텀 스킬 14종 설치 완료: deep-interview (v6.6), searchmode, execution-plan 등
 - 안전 유틸리티 및 가드 훅 배치: ~/.gemini/scripts/ (recycle 명령어, PreToolUse 영구 삭제 차단 훅 활성화)
 * 새로운 대화 세션을 시작하시면 즉시 활성화됩니다.
 ```

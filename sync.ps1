@@ -73,8 +73,12 @@ if (Test-Path $sourceSkillsDir) {
             New-Item -ItemType Directory -Path $skillDest -Force | Out-Null
         }
         
-        # 파일 복사 (.bak 파일 제외)
-        $files = Get-ChildItem -Path $skill.FullName -Recurse -File | Where-Object { $_.Extension -ne '.bak' }
+        # 파일 복사 (.bak, .pyc 파일 및 __pycache__ 제외)
+        $files = Get-ChildItem -Path $skill.FullName -Recurse -File | Where-Object { 
+            $_.Extension -ne '.bak' -and 
+            $_.Extension -ne '.pyc' -and 
+            $_.FullName -notmatch '__pycache__' 
+        }
         foreach ($file in $files) {
             $relPath = $file.FullName.Substring($skill.FullName.Length).TrimStart('\', '/')
             $destFilePath = Join-Path $skillDest $relPath

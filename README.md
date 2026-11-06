@@ -39,19 +39,21 @@ powershell -ExecutionPolicy Bypass -File .\install.ps1
 - **스킬 및 에이전트 로컬 스코프 원칙**: 프로젝트 작업 시 전역 설정 오염을 방지하고 워크스페이스 로컬 스코프 최우선 등록
 - **실사 의무 및 웹 검색 규약**: 사실 확인 우선 및 딥 리서치 규격 준수
 
-### 2. 커스텀 스킬 12종 (`skills/`)
+### 2. 커스텀 스킬 14종 (`skills/`)
 1. **`artifact-design`**: 단독 정적 HTML/CSS 웹 산출물 전용 디자인 가이드
 2. **`deep-interview`**: 소크라테스식 1문 1답 모호성 소거 기반 요구사항 구체화 엔진 (v6.6 / 챌린지 모드, 비전문가 언어 필터 탑재)
 3. **`directive-generator`**: 군더더기 없는 고밀도 명령형 실행 지시문 생성기
-4. **`execution-plan`**: 사전 실사 및 승인 게이트 기반 범용 작업 플래닝 엔진
-5. **`find-skill`**: 외부 스킬을 탐색하여 Antigravity 표준 규격으로 변환/설치
-6. **`list-up`**: 특정 주제 대안/아이디어를 표 형태로 20~30개 전수 발산
-7. **`pdf`**: PDF 텍스트/표 추출, 병합, 분할, OCR 등 전주기 처리 스킬
-8. **`pptx`**: 프레젠테이션 슬라이드 생성, 편집, 파싱 전문 스킬
-9. **`prompt-optimizer`**: 프롬프트 구조화, 고도화 및 69종 직무 프리셋 지원
-10. **`reverse-engineer-anything`**: 네이티브, 웹, 바이너리 리버스 엔지니어링 분석 스킬
-11. **`searchmode`**: 증거 우선 팩트체크 및 딥 리서치 엔진
-12. **`xlsx`**: 스프레드시트(.xlsx, .csv) 생성, 수식 계산, 클렌징 처리 스킬
+4. **`ego-browser`**: 웹 브라우저 자동화 및 브라우징 제어 스킬
+5. **`execution-plan`**: 사전 실사 및 승인 게이트 기반 범용 작업 플래닝 엔진
+6. **`export-transcript`**: 대화 로그(.jsonl)를 AI의 내부 사고 과정(Thinking)을 100% 보존하여 마크다운(.md)으로 내보내는 스킬
+7. **`find-skill`**: 외부 스킬을 탐색하여 Antigravity 표준 규격으로 변환/설치
+8. **`list-up`**: 특정 주제 대안/아이디어를 표 형태로 20~30개 전수 발산
+9. **`pdf`**: PDF 텍스트/표 추출, 병합, 분할, OCR 등 전주기 처리 스킬
+10. **`pptx`**: 프레젠테이션 슬라이드 생성, 편집, 파싱 전문 스킬
+11. **`prompt-optimizer`**: 프롬프트 구조화, 고도화 및 69종 직무 프리셋 지원
+12. **`reverse-engineer-anything`**: 네이티브, 웹, 바이너리 리버스 엔지니어링 분석 스킬
+13. **`searchmode`**: 증거 우선 팩트체크 및 딥 리서치 엔진
+14. **`xlsx`**: 스프레드시트(.xlsx, .csv) 생성, 수식 계산, 클렌징 처리 스킬
 
 ### 3. 안전 삭제 유틸리티 및 가드 훅 (`scripts/`, `hooks.json`)
 - **`recycle.ps1` / `recycle.cmd`**: 영구 삭제 대신 Windows 휴지통으로 안전하게 이동시키는 명령어 스크립트
@@ -60,12 +62,19 @@ powershell -ExecutionPolicy Bypass -File .\install.ps1
 
 ---
 
-## 🚀 깃허브 푸시 및 업데이트 방법
+## 🚀 원클릭 자동 업데이트 및 깃허브 푸시 (`update_and_push.bat`)
 
-설정을 수정한 후 변경 사항을 깃허브에 반영하려면:
+내 컴퓨터의 Antigravity 전역 설정(`~/.gemini/`)에서 스킬이나 규칙이 변경되었을 때, 폴더 내 **`update_and_push.bat`** 파일을 더블클릭하면 모든 작업이 자동으로 완료됩니다:
 
-```powershell
-git add .
-git commit -m "Update antigravity global config, skills, and guard hooks"
-git push origin main
-```
+1. 원격 최신 커밋 자동 확인 및 병합 (`git pull --rebase`)
+2. `~/.gemini/config/GEMINI.md` 전역 규칙 동기화 및 경로 정규화
+3. `~/.gemini/config/skills/` 내 모든 커스텀 스킬 최신화 (.bak / 캐시 자동 제외)
+4. `~/.gemini/scripts/` 휴지통 안전 스크립트 최신화
+5. 변경사항 자동 감지, 타임스탬프 커밋 및 원격 저장소(`origin/main`) 푸시 완료
+
+> 수동으로 터미널에서 푸시하려면:
+> ```powershell
+> git add .
+> git commit -m "Update antigravity global config, skills, and guard hooks"
+> git push origin main
+> ```

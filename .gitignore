@@ -5,6 +5,11 @@ Desktop.ini
 $RECYCLE.BIN/
 .DS_Store
 
+# Python cache & artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+
 # Sensitive credentials & tokens & local configs
 *.token
 *.pat
