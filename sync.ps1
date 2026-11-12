@@ -22,23 +22,23 @@ Write-Host "  Source : $sourceGeminiDir" -ForegroundColor Gray
 Write-Host "  Repo   : $scriptDir" -ForegroundColor Gray
 Write-Host "----------------------------------------------------------" -ForegroundColor DarkGray
 
-# 1. ì›ê²© ì €ì¥ì†Œ ìµœì‹  ìƒíƒœ í™•ì¸ ë° pull --rebase
-Write-Host "[1/4] ì›ê²© ì €ì¥ì†Œ ìµœì‹  ë³€ê²½ì‚¬í•­ í™•ì¸ ì¤‘..." -ForegroundColor Yellow
+# 1. ¿ø°İ ÀúÀå¼Ò ÃÖ½Å »óÅÂ È®ÀÎ ¹× pull --rebase
+Write-Host "[1/4] ¿ø°İ ÀúÀå¼Ò ÃÖ½Å º¯°æ»çÇ× È®ÀÎ Áß..." -ForegroundColor Yellow
 try {
     git -C $scriptDir fetch origin 2>$null
     $behind = git -C $scriptDir rev-list HEAD..origin/main --count 2>$null
     if ($behind -and [int]$behind -gt 0) {
-        Write-Host "    -> ì›ê²©ì— $behind ê°œì˜ ì‹ ê·œ ì»¤ë°‹ì´ ìˆìŠµë‹ˆë‹¤. Pull(rebase) ì§„í–‰..." -ForegroundColor Magenta
+        Write-Host "    -> ¿ø°İ¿¡ $behind °³ÀÇ ½Å±Ô Ä¿¹ÔÀÌ ÀÖ½À´Ï´Ù. Pull(rebase) ÁøÇà..." -ForegroundColor Magenta
         git -C $scriptDir pull --rebase origin main
     } else {
-        Write-Host "    -> ì›ê²© ì €ì¥ì†Œì™€ ìµœì‹  ìƒíƒœê°€ ì¼ì¹˜í•©ë‹ˆë‹¤." -ForegroundColor Green
+        Write-Host "    -> ¿ø°İ ÀúÀå¼Ò¿Í ÃÖ½Å »óÅÂ°¡ ÀÏÄ¡ÇÕ´Ï´Ù." -ForegroundColor Green
     }
 } catch {
-    Write-Host "    [!] ì›ê²© í™•ì¸ ì¤‘ ì•Œë¦¼: $_" -ForegroundColor Yellow
+    Write-Host "    [!] ¿ø°İ È®ÀÎ Áß ¾Ë¸²: $_" -ForegroundColor Yellow
 }
 
-# 2. GEMINI.md ë™ê¸°í™” (ê°œì¸ ê³„ì • ê²½ë¡œ ì¼ë°˜í™”)
-Write-Host "[2/4] GEMINI.md ì „ì—­ ê·œì¹™ ë™ê¸°í™” ì¤‘..." -ForegroundColor Yellow
+# 2. GEMINI.md µ¿±âÈ­ (°³ÀÎ °èÁ¤ °æ·Î ÀÏ¹İÈ­)
+Write-Host "[2/4] GEMINI.md Àü¿ª ±ÔÄ¢ µ¿±âÈ­ Áß..." -ForegroundColor Yellow
 $sourceGeminiMd = Join-Path $sourceConfigDir "GEMINI.md"
 if (-not (Test-Path $sourceGeminiMd)) {
     $sourceGeminiMd = Join-Path $sourceGeminiDir "GEMINI.md"
@@ -46,19 +46,19 @@ if (-not (Test-Path $sourceGeminiMd)) {
 
 if (Test-Path $sourceGeminiMd) {
     $geminiContent = Get-Content -Path $sourceGeminiMd -Raw -Encoding UTF8
-    # ê°œì¸ ì‚¬ìš©ì ê²½ë¡œë¥¼ ë²”ìš© $HOMEìœ¼ë¡œ ì •ê·œí™”
+    # °³ÀÎ »ç¿ëÀÚ °æ·Î¸¦ ¹ü¿ë $HOMEÀ¸·Î Á¤±ÔÈ­
     $escapedHome = [regex]::Escape($HOME)
     $normalizedContent = $geminiContent -replace $escapedHome, '$HOME'
     $normalizedContent = $normalizedContent -replace 'C:\\Users\\[^\\]+', '$HOME'
     
     Set-Content -Path $repoGeminiMd -Value $normalizedContent -Encoding UTF8
-    Write-Host "    -> GEMINI.md ë™ê¸°í™” ë° ê²½ë¡œ ì •ê·œí™” ì™„ë£Œ." -ForegroundColor Green
+    Write-Host "    -> GEMINI.md µ¿±âÈ­ ¹× °æ·Î Á¤±ÔÈ­ ¿Ï·á." -ForegroundColor Green
 } else {
-    Write-Host "    [!] ê²½ê³ : ë¡œì»¬ GEMINI.md íŒŒì¼ì„ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤." -ForegroundColor Red
+    Write-Host "    [!] °æ°í: ·ÎÄÃ GEMINI.md ÆÄÀÏÀ» Ã£À» ¼ö ¾ø½À´Ï´Ù." -ForegroundColor Red
 }
 
-# 3. ì»¤ìŠ¤í…€ ìŠ¤í‚¬ ë™ê¸°í™” (skills/)
-Write-Host "[3/4] ì»¤ìŠ¤í…€ ìŠ¤í‚¬ ë™ê¸°í™” ì¤‘..." -ForegroundColor Yellow
+# 3. Ä¿½ºÅÒ ½ºÅ³ µ¿±âÈ­ (skills/)
+Write-Host "[3/4] Ä¿½ºÅÒ ½ºÅ³ µ¿±âÈ­ Áß..." -ForegroundColor Yellow
 if (Test-Path $sourceSkillsDir) {
     if (-not (Test-Path $repoSkillsDir)) {
         New-Item -ItemType Directory -Path $repoSkillsDir -Force | Out-Null
@@ -73,7 +73,7 @@ if (Test-Path $sourceSkillsDir) {
             New-Item -ItemType Directory -Path $skillDest -Force | Out-Null
         }
         
-        # íŒŒì¼ ë³µì‚¬ (.bak, .pyc íŒŒì¼ ë° __pycache__ ì œì™¸)
+        # ÆÄÀÏ º¹»ç (.bak, .pyc ÆÄÀÏ ¹× __pycache__ Á¦¿Ü)
         $files = Get-ChildItem -Path $skill.FullName -Recurse -File | Where-Object { 
             $_.Extension -ne '.bak' -and 
             $_.Extension -ne '.pyc' -and 
@@ -87,7 +87,7 @@ if (Test-Path $sourceSkillsDir) {
                 New-Item -ItemType Directory -Path $destFileDir -Force | Out-Null
             }
             
-            # ë³€ê²½ ì—¬ë¶€ í™•ì¸ í›„ ë³µì‚¬
+            # º¯°æ ¿©ºÎ È®ÀÎ ÈÄ º¹»ç
             $needCopy = $true
             if (Test-Path $destFilePath) {
                 if ((Get-FileHash $file.FullName).Hash -eq (Get-FileHash $destFilePath).Hash) {
@@ -100,13 +100,13 @@ if (Test-Path $sourceSkillsDir) {
         }
         $syncedSkillsCount++
     }
-    Write-Host "    -> $syncedSkillsCount ê°œ ìŠ¤í‚¬ ë™ê¸°í™” ì™„ë£Œ." -ForegroundColor Green
+    Write-Host "    -> $syncedSkillsCount °³ ½ºÅ³ µ¿±âÈ­ ¿Ï·á." -ForegroundColor Green
 } else {
-    Write-Host "    [!] ê²½ê³ : ìŠ¤í‚¬ ë””ë ‰í„°ë¦¬ë¥¼ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤: $sourceSkillsDir" -ForegroundColor Red
+    Write-Host "    [!] °æ°í: ½ºÅ³ µğ·ºÅÍ¸®¸¦ Ã£À» ¼ö ¾ø½À´Ï´Ù: $sourceSkillsDir" -ForegroundColor Red
 }
 
-# 4. ì•ˆì „ ìŠ¤í¬ë¦½íŠ¸ ë™ê¸°í™” (scripts/)
-Write-Host "[4/4] ì•ˆì „ ì‚­ì œ ìŠ¤í¬ë¦½íŠ¸ ë™ê¸°í™” ì¤‘..." -ForegroundColor Yellow
+# 4. ¾ÈÀü ½ºÅ©¸³Æ® µ¿±âÈ­ (scripts/)
+Write-Host "[4/4] ¾ÈÀü »èÁ¦ ½ºÅ©¸³Æ® µ¿±âÈ­ Áß..." -ForegroundColor Yellow
 if (Test-Path $sourceScriptsDir) {
     if (-not (Test-Path $repoScriptsDir)) {
         New-Item -ItemType Directory -Path $repoScriptsDir -Force | Out-Null
@@ -126,47 +126,47 @@ if (Test-Path $sourceScriptsDir) {
             } else {
                 Copy-Item -Path $sSource -Destination $sDest -Force
             }
-            Write-Host "    -> ìŠ¤í¬ë¦½íŠ¸ ë™ê¸°í™”: $sName" -ForegroundColor Gray
+            Write-Host "    -> ½ºÅ©¸³Æ® µ¿±âÈ­: $sName" -ForegroundColor Gray
         }
     }
-    Write-Host "    -> ì•ˆì „ ìŠ¤í¬ë¦½íŠ¸ ë™ê¸°í™” ì™„ë£Œ." -ForegroundColor Green
+    Write-Host "    -> ¾ÈÀü ½ºÅ©¸³Æ® µ¿±âÈ­ ¿Ï·á." -ForegroundColor Green
 }
 
-# 5. Git ë³€ê²½ ê°ì§€ ë° ìë™ ì»¤ë°‹ / í‘¸ì‹œ
+# 5. Git º¯°æ °¨Áö ¹× ÀÚµ¿ Ä¿¹Ô / Çª½Ã
 Write-Host "----------------------------------------------------------" -ForegroundColor DarkGray
-Write-Host "Git ë³€ê²½ ì‚¬í•­ ì ê²€ ì¤‘..." -ForegroundColor Cyan
+Write-Host "Git º¯°æ »çÇ× Á¡°Ë Áß..." -ForegroundColor Cyan
 
 $status = git -C $scriptDir status --porcelain
 if ($status) {
-    Write-Host "ë³€ê²½ëœ íŒŒì¼ ê°ì§€ë¨:" -ForegroundColor Magenta
+    Write-Host "º¯°æµÈ ÆÄÀÏ °¨ÁöµÊ:" -ForegroundColor Magenta
     git -C $scriptDir status -s
     
     Write-Host ""
-    Write-Host "[+] ë³€ê²½ íŒŒì¼ ìŠ¤í…Œì´ì§• ì¤‘ (git add .)..." -ForegroundColor Yellow
+    Write-Host "[+] º¯°æ ÆÄÀÏ ½ºÅ×ÀÌÂ¡ Áß (git add .)..." -ForegroundColor Yellow
     git -C $scriptDir add .
     
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
     $commitMsg = "auto: sync global config and skills ($timestamp)"
-    Write-Host "[+] ì»¤ë°‹ ìƒì„± ì¤‘: '$commitMsg'..." -ForegroundColor Yellow
+    Write-Host "[+] Ä¿¹Ô »ı¼º Áß: '$commitMsg'..." -ForegroundColor Yellow
     git -C $scriptDir commit -m $commitMsg
     
-    Write-Host "[+] ì›ê²© ì €ì¥ì†Œ í‘¸ì‹œ ì¤‘ (git push origin main)..." -ForegroundColor Yellow
+    Write-Host "[+] ¿ø°İ ÀúÀå¼Ò Çª½Ã Áß (git push origin main)..." -ForegroundColor Yellow
     $pushResult = git -C $scriptDir push origin main 2>&1
     if ($LASTEXITCODE -eq 0) {
         Write-Host ""
         Write-Host "==========================================================" -ForegroundColor Green
-        Write-Host "  [ì„±ê³µ] ëª¨ë“  ë³€ê²½ì‚¬í•­ì´ GitHubì— ì •ìƒ í‘¸ì‹œë˜ì—ˆìŠµë‹ˆë‹¤!" -ForegroundColor Green
+        Write-Host "  [¼º°ø] ¸ğµç º¯°æ»çÇ×ÀÌ GitHub¿¡ Á¤»ó Çª½ÃµÇ¾ú½À´Ï´Ù!" -ForegroundColor Green
         Write-Host "==========================================================" -ForegroundColor Green
     } else {
         Write-Host ""
         Write-Host "==========================================================" -ForegroundColor Red
-        Write-Host "  [ì˜¤ë¥˜] Git push ì¤‘ ë¬¸ì œê°€ ë°œìƒí–ˆìŠµë‹ˆë‹¤:" -ForegroundColor Red
+        Write-Host "  [¿À·ù] Git push Áß ¹®Á¦°¡ ¹ß»ıÇß½À´Ï´Ù:" -ForegroundColor Red
         Write-Host $pushResult -ForegroundColor Red
         Write-Host "==========================================================" -ForegroundColor Red
     }
 } else {
     Write-Host ""
     Write-Host "==========================================================" -ForegroundColor Green
-    Write-Host "  [ìµœì‹  ìƒíƒœ] ë¡œì»¬ ì „ì—­ ì„¤ì •ê³¼ ì €ì¥ì†Œ ë‚´ìš©ì´ ì´ë¯¸ ë™ì¼í•©ë‹ˆë‹¤." -ForegroundColor Green
+    Write-Host "  [ÃÖ½Å »óÅÂ] ·ÎÄÃ Àü¿ª ¼³Á¤°ú ÀúÀå¼Ò ³»¿ëÀÌ ÀÌ¹Ì µ¿ÀÏÇÕ´Ï´Ù." -ForegroundColor Green
     Write-Host "==========================================================" -ForegroundColor Green
 }
