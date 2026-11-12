@@ -22,7 +22,7 @@ Write-Host "  Target Gemini Directory: $targetGeminiDir" -ForegroundColor Gray
 Write-Host "  Target Config Directory: $targetConfigDir" -ForegroundColor Gray
 Write-Host "==========================================================" -ForegroundColor Cyan
 
-# 1. ëŒ€ìƒ ë””ë ‰í„°ë¦¬ í™•ì¸ ë° ìƒì„±
+# 1. ´ë»ó µğ·ºÅÍ¸® È®ÀÎ ¹× »ı¼º
 $dirsToCreate = @($targetConfigDir, $targetSkillsDir, $targetScriptsDir)
 foreach ($dir in $dirsToCreate) {
     if (-not (Test-Path $dir)) {
@@ -31,7 +31,7 @@ foreach ($dir in $dirsToCreate) {
     }
 }
 
-# 2. GEMINI.md ì „ì—­ ê·œì¹™ ë³µì‚¬ (ìƒìœ„ ~/.gemini ë° ~/.gemini/config ì–‘ìª½ ì§€ì›)
+# 2. GEMINI.md Àü¿ª ±ÔÄ¢ º¹»ç (»óÀ§ ~/.gemini ¹× ~/.gemini/config ¾çÂÊ Áö¿ø)
 if (Test-Path $sourceGeminiMd) {
     $targetGeminiMd1 = Join-Path $targetGeminiDir "GEMINI.md"
     $targetGeminiMd2 = Join-Path $targetConfigDir "GEMINI.md"
@@ -42,7 +42,7 @@ if (Test-Path $sourceGeminiMd) {
     Write-Host "[!] Warning: GEMINI.md not found in source directory." -ForegroundColor Red
 }
 
-# 3. ì»¤ìŠ¤í…€ ìŠ¤í‚¬ ë³µì‚¬
+# 3. Ä¿½ºÅÒ ½ºÅ³ º¹»ç
 if (Test-Path $sourceSkillsDir) {
     $skills = Get-ChildItem -Path $sourceSkillsDir -Directory
     Write-Host "[+] Found $($skills.Count) skills to deploy..." -ForegroundColor Green
@@ -56,7 +56,7 @@ if (Test-Path $sourceSkillsDir) {
     Write-Host "[!] Warning: skills directory not found in source directory." -ForegroundColor Red
 }
 
-# 4. ì•ˆì „ ìŠ¤í¬ë¦½íŠ¸ ë³µì‚¬ (~/.gemini/scripts)
+# 4. ¾ÈÀü ½ºÅ©¸³Æ® º¹»ç (~/.gemini/scripts)
 if (Test-Path $sourceScriptsDir) {
     $scripts = Get-ChildItem -Path $sourceScriptsDir -File
     Write-Host "[+] Found $($scripts.Count) scripts to deploy..." -ForegroundColor Green
@@ -70,7 +70,7 @@ if (Test-Path $sourceScriptsDir) {
     Write-Host "[!] Warning: scripts directory not found in source directory." -ForegroundColor Red
 }
 
-# 5. hooks.json ë³µì‚¬ ë° ë™ì  ê²½ë¡œ ì ìš© (ì˜êµ¬ ì‚­ì œ ì°¨ë‹¨ ê°€ë“œ í›…)
+# 5. hooks.json º¹»ç ¹× µ¿Àû °æ·Î Àû¿ë (¿µ±¸ »èÁ¦ Â÷´Ü °¡µå ÈÅ)
 if (Test-Path $sourceHooksJson) {
     Write-Host "[+] Configuring delete-guard hook (hooks.json)..." -ForegroundColor Green
     $hookTemplate = Get-Content $sourceHooksJson -Raw -Encoding UTF8
@@ -84,7 +84,7 @@ if (Test-Path $sourceHooksJson) {
     Write-Host "    -> Hooks installed to $hookDest1 and $hookDest2" -ForegroundColor Gray
 }
 
-# 6. Windows User PATHì— scripts ë””ë ‰í„°ë¦¬ ë“±ë¡ (recycle ëª…ë ¹ì–´ ì „ì—­ í™œì„±í™”)
+# 6. Windows User PATH¿¡ scripts µğ·ºÅÍ¸® µî·Ï (recycle ¸í·É¾î Àü¿ª È°¼ºÈ­)
 try {
     $userPath = [Environment]::GetEnvironmentVariable("Path", "User")
     if ($userPath -notlike "*$targetScriptsDir*") {
@@ -100,7 +100,7 @@ try {
     Write-Host "[!] Notice: Could not update User PATH automatically: $_" -ForegroundColor Yellow
 }
 
-# 7. ê²€ì¦ ë° ê²°ê³¼ ë³´ê³ 
+# 7. °ËÁõ ¹× °á°ú º¸°í
 Write-Host ""
 Write-Host "==========================================================" -ForegroundColor Cyan
 Write-Host "  Deployment Summary & Verification" -ForegroundColor Cyan
