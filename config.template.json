@@ -1,0 +1,41 @@
+{
+  "userSettings": {
+    "artifactReviewMode": "ARTIFACT_REVIEW_MODE_TURBO",
+    "autoExecutionPolicy": "CASCADE_COMMANDS_AUTO_EXECUTION_EAGER",
+    "browserJsExecutionPolicy": "BROWSER_JS_EXECUTION_POLICY_TURBO",
+    "enableTerminalSandbox": false,
+    "globalPermissionGrants": {
+      "allow": [
+        "read_url(raw.githubusercontent.com)",
+        "read_url(github.com)",
+        "read_url(nosearch.com)",
+        "read_url(nejm.org)",
+        "read_url(health.harvard.edu)",
+        "read_url(mayoclinic.org)",
+        "read_url(newsroom.heart.org)",
+        "read_url(deepwiki.com)",
+        "read_url(prompt.always200.com)",
+        "read_url(developers.mybox.naver.com)",
+        "mcp(naver-mybox/mybox_list_files)",
+        "mcp(naver-mybox/mybox_get_storage_status)",
+        "mcp(naver-mybox/mybox_create_folder)",
+        "mcp(naver-mybox/mybox_upload_file)",
+        "read_url(antigravity.google)",
+        "read_url(workerkit.ai)",
+        "read_url(smartstore.naver.com)",
+        "read_url(search.dcinside.com)",
+        "read_url(gall.dcinside.com)",
+        "read_url(m.dcinside.com)",
+        "read_url(coupang.com)",
+        "read_url(prod.danawa.com)",
+        "read_url(vertexaisearch.cloud.google.com)"
+      ]
+    },
+    "nonWorkspaceFileAccessPolicy": "AGENT_SETTING_POLICY_ALLOW",
+    "permissionGrantsV2Migrated": true,
+    "queuedMessageDeliveryStrategy": "MESSAGE_DELIVERY_STRATEGY_WHEN_IDLE",
+    "sandboxEnabledAtV2Migration": false,
+    "themeMode": "THEME_MODE_LIGHT",
+    "useAiCredits": true
+  }
+}

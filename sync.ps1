@@ -1,4 +1,4 @@
-# ==============================================================================
+ï»¿ï»¿# ==============================================================================
 # Antigravity Dotfiles Auto Sync & Push Script
 # ==============================================================================
 
@@ -10,10 +10,47 @@ $sourceGeminiDir = Join-Path $HOME ".gemini"
 $sourceConfigDir = Join-Path $sourceGeminiDir "config"
 $sourceSkillsDir = Join-Path $sourceConfigDir "skills"
 $sourceScriptsDir = Join-Path $sourceGeminiDir "scripts"
+$sourceConfigJson = Join-Path $sourceConfigDir "config.json"
 
 $repoSkillsDir = Join-Path $scriptDir "skills"
 $repoScriptsDir = Join-Path $scriptDir "scripts"
 $repoGeminiMd = Join-Path $scriptDir "GEMINI.md"
+$repoConfigTemplate = Join-Path $scriptDir "config.template.json"
+
+# ì €ì¥ì†Œì—ì„œ ì˜ë„ì ìœ¼ë¡œ ì œì™¸í•˜ëŠ” ë¡œì»¬ ì „ìš© ìŠ¤í‚¬ ëª©ë¡
+$excludedSkills = @('culinary-master')
+
+$utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+
+function Normalize-HomePaths {
+    param([string]$Text)
+    $escapedHome = [regex]::Escape($HOME)
+    $res = $Text -replace $escapedHome, '$HOME'
+    $res = $res -replace 'C:\\Users\\[^\\/\s"''`]+', '$HOME'
+    return $res
+}
+
+function Resolve-EgoBrowserSkillSource {
+    param([string]$LocalSkillPath)
+    if ((Test-Path $LocalSkillPath) -and (Get-ChildItem -Path $LocalSkillPath -File -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1)) {
+        return $LocalSkillPath
+    }
+    $egoShare = Join-Path $HOME ".local\share\ego\ego-skills"
+    if ((Test-Path $egoShare) -and (Test-Path (Join-Path $egoShare "SKILL.md"))) {
+        return $egoShare
+    }
+    $appRoot = "C:\Program Files\Citro Labs\ego lite\Application"
+    if (Test-Path $appRoot) {
+        $latest = Get-ChildItem -Path $appRoot -Directory -ErrorAction SilentlyContinue |
+            Where-Object { Test-Path (Join-Path $_.FullName "ego-skills\ego-browser\SKILL.md") } |
+            Sort-Object Name -Descending |
+            Select-Object -First 1
+        if ($latest) {
+            return (Join-Path $latest.FullName "ego-skills\ego-browser")
+        }
+    }
+    return $null
+}
 
 Write-Host "==========================================================" -ForegroundColor Cyan
 Write-Host "  Antigravity Dotfiles Auto Sync & Push" -ForegroundColor Cyan
@@ -22,96 +59,119 @@ Write-Host "  Source : $sourceGeminiDir" -ForegroundColor Gray
 Write-Host "  Repo   : $scriptDir" -ForegroundColor Gray
 Write-Host "----------------------------------------------------------" -ForegroundColor DarkGray
 
-# 1. ¿ø°İ ÀúÀå¼Ò ÃÖ½Å »óÅÂ È®ÀÎ ¹× pull --rebase
-Write-Host "[1/4] ¿ø°İ ÀúÀå¼Ò ÃÖ½Å º¯°æ»çÇ× È®ÀÎ Áß..." -ForegroundColor Yellow
-try {
-    git -C $scriptDir fetch origin 2>$null
-    $behind = git -C $scriptDir rev-list HEAD..origin/main --count 2>$null
-    if ($behind -and [int]$behind -gt 0) {
-        Write-Host "    -> ¿ø°İ¿¡ $behind °³ÀÇ ½Å±Ô Ä¿¹ÔÀÌ ÀÖ½À´Ï´Ù. Pull(rebase) ÁøÇà..." -ForegroundColor Magenta
-        git -C $scriptDir pull --rebase origin main
-    } else {
-        Write-Host "    -> ¿ø°İ ÀúÀå¼Ò¿Í ÃÖ½Å »óÅÂ°¡ ÀÏÄ¡ÇÕ´Ï´Ù." -ForegroundColor Green
+# 1. ì›ê²© ì €ì¥ì†Œ ìµœì‹  ìƒíƒœ í™•ì¸ ë° pull --rebase
+Write-Host "[1/5] ì›ê²© ì €ì¥ì†Œ ìµœì‹  ë³€ê²½ì‚¬í•­ í™•ì¸ ì¤‘..." -ForegroundColor Yellow
+git -C $scriptDir fetch origin 2>$null
+$behind = git -C $scriptDir rev-list HEAD..origin/main --count 2>$null
+if ($behind -and [int]$behind -gt 0) {
+    Write-Host "    -> ì›ê²©ì— $behind ê°œì˜ ì‹ ê·œ ì»¤ë°‹ì´ ìˆìŠµë‹ˆë‹¤. Pull(rebase) ì§„í–‰..." -ForegroundColor Magenta
+    git -C $scriptDir pull --rebase origin main
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "    [!] ì˜¤ë¥˜: git pull --rebase ì‹¤íŒ¨. ì¶©ëŒì„ ë¨¼ì € í•´ê²°í•œ ë’¤ ë‹¤ì‹œ ì‹¤í–‰í•˜ì„¸ìš”." -ForegroundColor Red
+        exit 1
     }
-} catch {
-    Write-Host "    [!] ¿ø°İ È®ÀÎ Áß ¾Ë¸²: $_" -ForegroundColor Yellow
+} else {
+    Write-Host "    -> ì›ê²© ì €ì¥ì†Œì™€ ìµœì‹  ìƒíƒœê°€ ì¼ì¹˜í•©ë‹ˆë‹¤." -ForegroundColor Green
 }
 
-# 2. GEMINI.md µ¿±âÈ­ (°³ÀÎ °èÁ¤ °æ·Î ÀÏ¹İÈ­)
-Write-Host "[2/4] GEMINI.md Àü¿ª ±ÔÄ¢ µ¿±âÈ­ Áß..." -ForegroundColor Yellow
-$sourceGeminiMd = Join-Path $sourceConfigDir "GEMINI.md"
-if (-not (Test-Path $sourceGeminiMd)) {
-    $sourceGeminiMd = Join-Path $sourceGeminiDir "GEMINI.md"
+# 2. GEMINI.md ë™ê¸°í™” (ê°œì¸ ê³„ì • ê²½ë¡œ ì¼ë°˜í™”)
+Write-Host "[2/5] GEMINI.md ì „ì—­ ê·œì¹™ ë™ê¸°í™” ì¤‘..." -ForegroundColor Yellow
+$sourceGeminiMd1 = Join-Path $sourceGeminiDir "GEMINI.md"
+$sourceGeminiMd2 = Join-Path $sourceConfigDir "GEMINI.md"
+$sourceGeminiMd = if (Test-Path $sourceGeminiMd2) { $sourceGeminiMd2 } else { $sourceGeminiMd1 }
+
+if ((Test-Path $sourceGeminiMd1) -and (Test-Path $sourceGeminiMd2)) {
+    if ((Get-FileHash $sourceGeminiMd1).Hash -ne (Get-FileHash $sourceGeminiMd2).Hash) {
+        Write-Host "    [!] ì•ˆë‚´: ~/.gemini/GEMINI.md ì™€ ~/.gemini/config/GEMINI.md ë‚´ìš©ì´ ë‹¤ë¦…ë‹ˆë‹¤. config/GEMINI.md ê¸°ì¤€ìœ¼ë¡œ ë™ê¸°í™”í•©ë‹ˆë‹¤." -ForegroundColor Yellow
+    }
 }
 
 if (Test-Path $sourceGeminiMd) {
     $geminiContent = Get-Content -Path $sourceGeminiMd -Raw -Encoding UTF8
-    # °³ÀÎ »ç¿ëÀÚ °æ·Î¸¦ ¹ü¿ë $HOMEÀ¸·Î Á¤±ÔÈ­
-    $escapedHome = [regex]::Escape($HOME)
-    $normalizedContent = $geminiContent -replace $escapedHome, '$HOME'
-    $normalizedContent = $normalizedContent -replace 'C:\\Users\\[^\\]+', '$HOME'
-    
-    Set-Content -Path $repoGeminiMd -Value $normalizedContent -Encoding UTF8
-    Write-Host "    -> GEMINI.md µ¿±âÈ­ ¹× °æ·Î Á¤±ÔÈ­ ¿Ï·á." -ForegroundColor Green
+    $normalizedContent = Normalize-HomePaths $geminiContent
+    [System.IO.File]::WriteAllText($repoGeminiMd, $normalizedContent, $utf8NoBom)
+    Write-Host "    -> GEMINI.md ë™ê¸°í™” ë° ê²½ë¡œ ì •ê·œí™” ì™„ë£Œ." -ForegroundColor Green
 } else {
-    Write-Host "    [!] °æ°í: ·ÎÄÃ GEMINI.md ÆÄÀÏÀ» Ã£À» ¼ö ¾ø½À´Ï´Ù." -ForegroundColor Red
+    Write-Host "    [!] ê²½ê³ : ë¡œì»¬ GEMINI.md íŒŒì¼ì„ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤." -ForegroundColor Red
 }
 
-# 3. Ä¿½ºÅÒ ½ºÅ³ µ¿±âÈ­ (skills/)
-Write-Host "[3/4] Ä¿½ºÅÒ ½ºÅ³ µ¿±âÈ­ Áß..." -ForegroundColor Yellow
+# 3. ì»¤ìŠ¤í…€ ìŠ¤í‚¬ ë™ê¸°í™” (skills/)
+Write-Host "[3/5] ì»¤ìŠ¤í…€ ìŠ¤í‚¬ ë™ê¸°í™” ì¤‘..." -ForegroundColor Yellow
 if (Test-Path $sourceSkillsDir) {
     if (-not (Test-Path $repoSkillsDir)) {
         New-Item -ItemType Directory -Path $repoSkillsDir -Force | Out-Null
     }
-    
+
     $skills = Get-ChildItem -Path $sourceSkillsDir -Directory
     $syncedSkillsCount = 0
-    
+
     foreach ($skill in $skills) {
+        if ($excludedSkills -contains $skill.Name) {
+            Write-Host "    -> ì œì™¸ëœ ìŠ¤í‚¬ ê±´ë„ˆëœ€: $($skill.Name)" -ForegroundColor DarkGray
+            continue
+        }
+
+        $skillSourcePath = $skill.FullName
+        if ($skill.Name -eq "ego-browser") {
+            $resolvedEgo = Resolve-EgoBrowserSkillSource $skillSourcePath
+            if (-not $resolvedEgo) {
+                Write-Host "    [!] ê²½ê³ : ego-browser ìŠ¤í‚¬ ì†ŒìŠ¤ë¥¼ ì°¾ì„ ìˆ˜ ì—†ì–´ ê±´ë„ˆëœë‹ˆë‹¤." -ForegroundColor Yellow
+                continue
+            }
+            $skillSourcePath = $resolvedEgo
+        }
+
         $skillDest = Join-Path $repoSkillsDir $skill.Name
         if (-not (Test-Path $skillDest)) {
             New-Item -ItemType Directory -Path $skillDest -Force | Out-Null
         }
-        
-        # ÆÄÀÏ º¹»ç (.bak, .pyc ÆÄÀÏ ¹× __pycache__ Á¦¿Ü)
-        $files = Get-ChildItem -Path $skill.FullName -Recurse -File | Where-Object { 
-            $_.Extension -ne '.bak' -and 
-            $_.Extension -ne '.pyc' -and 
-            $_.FullName -notmatch '__pycache__' 
+
+        $files = Get-ChildItem -Path $skillSourcePath -Recurse -File | Where-Object {
+            $_.Extension -ne '.bak' -and
+            $_.Extension -ne '.pyc' -and
+            $_.FullName -notmatch '__pycache__'
         }
         foreach ($file in $files) {
-            $relPath = $file.FullName.Substring($skill.FullName.Length).TrimStart('\', '/')
+            $relPath = $file.FullName.Substring($skillSourcePath.Length).TrimStart('\', '/')
             $destFilePath = Join-Path $skillDest $relPath
             $destFileDir = Split-Path -Parent $destFilePath
             if (-not (Test-Path $destFileDir)) {
                 New-Item -ItemType Directory -Path $destFileDir -Force | Out-Null
             }
-            
-            # º¯°æ ¿©ºÎ È®ÀÎ ÈÄ º¹»ç
-            $needCopy = $true
-            if (Test-Path $destFilePath) {
-                if ((Get-FileHash $file.FullName).Hash -eq (Get-FileHash $destFilePath).Hash) {
-                    $needCopy = $false
+
+            if ($file.Extension -eq '.md') {
+                $rawMd = Get-Content -Path $file.FullName -Raw -Encoding UTF8
+                $normMd = Normalize-HomePaths $rawMd
+                $existingMd = if (Test-Path $destFilePath) { Get-Content -Path $destFilePath -Raw -Encoding UTF8 } else { $null }
+                if ($normMd -ne $existingMd) {
+                    [System.IO.File]::WriteAllText($destFilePath, $normMd, $utf8NoBom)
                 }
-            }
-            if ($needCopy) {
-                Copy-Item -Path $file.FullName -Destination $destFilePath -Force
+            } else {
+                $needCopy = $true
+                if (Test-Path $destFilePath) {
+                    if ((Get-FileHash $file.FullName).Hash -eq (Get-FileHash $destFilePath).Hash) {
+                        $needCopy = $false
+                    }
+                }
+                if ($needCopy) {
+                    Copy-Item -Path $file.FullName -Destination $destFilePath -Force
+                }
             }
         }
         $syncedSkillsCount++
     }
-    Write-Host "    -> $syncedSkillsCount °³ ½ºÅ³ µ¿±âÈ­ ¿Ï·á." -ForegroundColor Green
+    Write-Host "    -> $syncedSkillsCount ê°œ ìŠ¤í‚¬ ë™ê¸°í™” ì™„ë£Œ." -ForegroundColor Green
 } else {
-    Write-Host "    [!] °æ°í: ½ºÅ³ µğ·ºÅÍ¸®¸¦ Ã£À» ¼ö ¾ø½À´Ï´Ù: $sourceSkillsDir" -ForegroundColor Red
+    Write-Host "    [!] ê²½ê³ : ìŠ¤í‚¬ ë””ë ‰í„°ë¦¬ë¥¼ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤: $sourceSkillsDir" -ForegroundColor Red
 }
 
-# 4. ¾ÈÀü ½ºÅ©¸³Æ® µ¿±âÈ­ (scripts/)
-Write-Host "[4/4] ¾ÈÀü »èÁ¦ ½ºÅ©¸³Æ® µ¿±âÈ­ Áß..." -ForegroundColor Yellow
+# 4. ì•ˆì „ ìŠ¤í¬ë¦½íŠ¸ ë™ê¸°í™” (scripts/)
+Write-Host "[4/5] ì•ˆì „ ì‚­ì œ ìŠ¤í¬ë¦½íŠ¸ ë™ê¸°í™” ì¤‘..." -ForegroundColor Yellow
 if (Test-Path $sourceScriptsDir) {
     if (-not (Test-Path $repoScriptsDir)) {
         New-Item -ItemType Directory -Path $repoScriptsDir -Force | Out-Null
     }
-    
+
     $targetScripts = @('recycle.ps1', 'recycle.cmd', 'check_delete_guard.py')
     foreach ($sName in $targetScripts) {
         $sSource = Join-Path $sourceScriptsDir $sName
@@ -119,54 +179,74 @@ if (Test-Path $sourceScriptsDir) {
         if (Test-Path $sSource) {
             if ($sName -eq 'check_delete_guard.py') {
                 $pyContent = Get-Content -Path $sSource -Raw -Encoding UTF8
-                $escapedHome = [regex]::Escape($HOME)
-                $normalizedPy = $pyContent -replace $escapedHome, '$HOME'
-                $normalizedPy = $normalizedPy -replace 'C:\\Users\\[^\\]+', '$HOME'
-                Set-Content -Path $sDest -Value $normalizedPy -Encoding UTF8
+                $normalizedPy = Normalize-HomePaths $pyContent
+                [System.IO.File]::WriteAllText($sDest, $normalizedPy, $utf8NoBom)
             } else {
                 Copy-Item -Path $sSource -Destination $sDest -Force
             }
-            Write-Host "    -> ½ºÅ©¸³Æ® µ¿±âÈ­: $sName" -ForegroundColor Gray
+            Write-Host "    -> ìŠ¤í¬ë¦½íŠ¸ ë™ê¸°í™”: $sName" -ForegroundColor Gray
         }
     }
-    Write-Host "    -> ¾ÈÀü ½ºÅ©¸³Æ® µ¿±âÈ­ ¿Ï·á." -ForegroundColor Green
+    Write-Host "    -> ì•ˆì „ ìŠ¤í¬ë¦½íŠ¸ ë™ê¸°í™” ì™„ë£Œ." -ForegroundColor Green
 }
 
-# 5. Git º¯°æ °¨Áö ¹× ÀÚµ¿ Ä¿¹Ô / Çª½Ã
+# 5. Antigravity userSettings í…œí”Œë¦¿ ë™ê¸°í™” (config.template.json)
+Write-Host "[5/5] ì „ì—­ ì„¤ì • í…œí”Œë¦¿(config.template.json) ë™ê¸°í™” ì¤‘..." -ForegroundColor Yellow
+if (Test-Path $sourceConfigJson) {
+    try {
+        $cfgObj = Get-Content -Path $sourceConfigJson -Raw -Encoding UTF8 | ConvertFrom-Json
+        if ($cfgObj.userSettings) {
+            $filteredSettings = [ordered]@{}
+            foreach ($prop in $cfgObj.userSettings.PSObject.Properties) {
+                if ($prop.Name -notin @('remoteControlEnabled', 'remoteControlHostname')) {
+                    $filteredSettings[$prop.Name] = $prop.Value
+                }
+            }
+            $templateObj = [ordered]@{ userSettings = $filteredSettings }
+            $jsonStr = ($templateObj | ConvertTo-Json -Depth 10) + "`n"
+            [System.IO.File]::WriteAllText($repoConfigTemplate, $jsonStr, $utf8NoBom)
+            Write-Host "    -> config.template.json ë™ê¸°í™” ì™„ë£Œ (ë¯¼ê°/ê¸°ê¸°ë³„ í•­ëª© ì œì™¸)." -ForegroundColor Green
+        }
+    } catch {
+        Write-Host "    [!] ê²½ê³ : config.json íŒŒì‹± ì‹¤íŒ¨: $_" -ForegroundColor Yellow
+    }
+}
+
+# 6. Git ë³€ê²½ ê°ì§€ ë° ìë™ ì»¤ë°‹ / í‘¸ì‹œ
 Write-Host "----------------------------------------------------------" -ForegroundColor DarkGray
-Write-Host "Git º¯°æ »çÇ× Á¡°Ë Áß..." -ForegroundColor Cyan
+Write-Host "Git ë³€ê²½ ì‚¬í•­ ì ê²€ ì¤‘..." -ForegroundColor Cyan
 
 $status = git -C $scriptDir status --porcelain
 if ($status) {
-    Write-Host "º¯°æµÈ ÆÄÀÏ °¨ÁöµÊ:" -ForegroundColor Magenta
+    Write-Host "ë³€ê²½ëœ íŒŒì¼ ê°ì§€ë¨:" -ForegroundColor Magenta
     git -C $scriptDir status -s
-    
+
     Write-Host ""
-    Write-Host "[+] º¯°æ ÆÄÀÏ ½ºÅ×ÀÌÂ¡ Áß (git add .)..." -ForegroundColor Yellow
+    Write-Host "[+] ë³€ê²½ íŒŒì¼ ìŠ¤í…Œì´ì§• ì¤‘ (git add .)..." -ForegroundColor Yellow
     git -C $scriptDir add .
-    
+
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
     $commitMsg = "auto: sync global config and skills ($timestamp)"
-    Write-Host "[+] Ä¿¹Ô »ı¼º Áß: '$commitMsg'..." -ForegroundColor Yellow
+    Write-Host "[+] ì»¤ë°‹ ìƒì„± ì¤‘: '$commitMsg'..." -ForegroundColor Yellow
     git -C $scriptDir commit -m $commitMsg
-    
-    Write-Host "[+] ¿ø°İ ÀúÀå¼Ò Çª½Ã Áß (git push origin main)..." -ForegroundColor Yellow
+
+    Write-Host "[+] ì›ê²© ì €ì¥ì†Œ í‘¸ì‹œ ì¤‘ (git push origin main)..." -ForegroundColor Yellow
     $pushResult = git -C $scriptDir push origin main 2>&1
     if ($LASTEXITCODE -eq 0) {
         Write-Host ""
         Write-Host "==========================================================" -ForegroundColor Green
-        Write-Host "  [¼º°ø] ¸ğµç º¯°æ»çÇ×ÀÌ GitHub¿¡ Á¤»ó Çª½ÃµÇ¾ú½À´Ï´Ù!" -ForegroundColor Green
+        Write-Host "  [ì„±ê³µ] ëª¨ë“  ë³€ê²½ì‚¬í•­ì´ GitHubì— ì •ìƒ í‘¸ì‹œë˜ì—ˆìŠµë‹ˆë‹¤!" -ForegroundColor Green
         Write-Host "==========================================================" -ForegroundColor Green
     } else {
         Write-Host ""
         Write-Host "==========================================================" -ForegroundColor Red
-        Write-Host "  [¿À·ù] Git push Áß ¹®Á¦°¡ ¹ß»ıÇß½À´Ï´Ù:" -ForegroundColor Red
+        Write-Host "  [ì˜¤ë¥˜] Git push ì¤‘ ë¬¸ì œê°€ ë°œìƒí–ˆìŠµë‹ˆë‹¤:" -ForegroundColor Red
         Write-Host $pushResult -ForegroundColor Red
         Write-Host "==========================================================" -ForegroundColor Red
     }
 } else {
     Write-Host ""
     Write-Host "==========================================================" -ForegroundColor Green
-    Write-Host "  [ÃÖ½Å »óÅÂ] ·ÎÄÃ Àü¿ª ¼³Á¤°ú ÀúÀå¼Ò ³»¿ëÀÌ ÀÌ¹Ì µ¿ÀÏÇÕ´Ï´Ù." -ForegroundColor Green
+    Write-Host "  [ìµœì‹  ìƒíƒœ] ë¡œì»¬ ì „ì—­ ì„¤ì •ê³¼ ì €ì¥ì†Œ ë‚´ìš©ì´ ì´ë¯¸ ë™ì¼í•©ë‹ˆë‹¤." -ForegroundColor Green
     Write-Host "==========================================================" -ForegroundColor Green
 }

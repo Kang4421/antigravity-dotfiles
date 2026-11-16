@@ -1,4 +1,4 @@
-# ==============================================================================
+ÔªøÔªø# ==============================================================================
 # Antigravity Environment One-Click Setup Script (Windows PowerShell)
 # ==============================================================================
 
@@ -15,6 +15,7 @@ $sourceGeminiMd = Join-Path $scriptDir "GEMINI.md"
 $sourceSkillsDir = Join-Path $scriptDir "skills"
 $sourceScriptsDir = Join-Path $scriptDir "scripts"
 $sourceHooksJson = Join-Path $scriptDir "hooks.json"
+$sourceConfigTemplate = Join-Path $scriptDir "config.template.json"
 
 Write-Host "==========================================================" -ForegroundColor Cyan
 Write-Host "  Starting Antigravity Environment Setup..." -ForegroundColor Cyan
@@ -22,7 +23,7 @@ Write-Host "  Target Gemini Directory: $targetGeminiDir" -ForegroundColor Gray
 Write-Host "  Target Config Directory: $targetConfigDir" -ForegroundColor Gray
 Write-Host "==========================================================" -ForegroundColor Cyan
 
-# 1. ¥ÎªÛ µ∑∫≈Õ∏Æ »Æ¿Œ π◊ ª˝º∫
+# 1. ÎåÄÏÉÅ ÎîîÎ†âÌÑ∞Î¶¨ ÌôïÏù∏ Î∞è ÏÉùÏÑ±
 $dirsToCreate = @($targetConfigDir, $targetSkillsDir, $targetScriptsDir)
 foreach ($dir in $dirsToCreate) {
     if (-not (Test-Path $dir)) {
@@ -31,36 +32,50 @@ foreach ($dir in $dirsToCreate) {
     }
 }
 
-# 2. GEMINI.md ¿¸ø™ ±‘ƒ¢ ∫πªÁ (ªÛ¿ß ~/.gemini π◊ ~/.gemini/config æÁ¬  ¡ˆø¯)
+# 2. GEMINI.md Ï†ÑÏó≠ Í∑úÏπô Î≥µÏÇ¨ (ÏÉÅÏúÑ ~/.gemini Î∞è ~/.gemini/config ÏñëÏ™Ω ÎèôÍ∏∞Ìôî)
 if (Test-Path $sourceGeminiMd) {
     $targetGeminiMd1 = Join-Path $targetGeminiDir "GEMINI.md"
     $targetGeminiMd2 = Join-Path $targetConfigDir "GEMINI.md"
-    Write-Host "[+] Deploying GEMINI.md -> $targetGeminiMd2" -ForegroundColor Green
-    Copy-Item -Path $sourceGeminiMd -Destination $targetGeminiMd2 -Force
+    Write-Host "[+] Deploying GEMINI.md -> $targetGeminiMd1 & $targetGeminiMd2" -ForegroundColor Green
     Copy-Item -Path $sourceGeminiMd -Destination $targetGeminiMd1 -Force
+    Copy-Item -Path $sourceGeminiMd -Destination $targetGeminiMd2 -Force
 } else {
     Write-Host "[!] Warning: GEMINI.md not found in source directory." -ForegroundColor Red
 }
 
-# 3. ƒøΩ∫≈“ Ω∫≈≥ ∫πªÁ
+# 3. Ïª§Ïä§ÌÖÄ Ïä§ÌÇ¨ Î≥µÏÇ¨
 if (Test-Path $sourceSkillsDir) {
     $skills = Get-ChildItem -Path $sourceSkillsDir -Directory
     Write-Host "[+] Found $($skills.Count) skills to deploy..." -ForegroundColor Green
-    
+
     foreach ($skill in $skills) {
         $skillDest = Join-Path $targetSkillsDir $skill.Name
+        # ego-browserÍ∞Ä Ïù¥ÎØ∏ ego lite ÎßÅÌÅ¨(Junction/Symlink)Î°ú Ïó∞Í≤∞ÎêòÏñ¥ ÏûàÏúºÎ©¥ ÎçÆÏñ¥Ïì∞ÏßÄ ÏïäÍ≥† Ïú†ÏßÄ
+        if ($skill.Name -eq "ego-browser" -and (Test-Path -LiteralPath $skillDest)) {
+            $destItem = Get-Item -LiteralPath $skillDest -Force
+            if ($destItem.Attributes -band [System.IO.FileAttributes]::ReparsePoint) {
+                if (Test-Path (Join-Path $skillDest "SKILL.md")) {
+                    Write-Host "    -> Keeping active ego-browser junction: $skillDest" -ForegroundColor Cyan
+                } else {
+                    Write-Host "    -> [!] Existing ego-browser junction target is missing (ego lite may need to be launched once): $skillDest" -ForegroundColor Yellow
+                }
+                continue
+            }
+        }
+
         Write-Host "    -> Deploying Skill: $($skill.Name)" -ForegroundColor Gray
-        Copy-Item -Path $skill.FullName -Destination $skillDest -Recurse -Force
+        # Î∂ÄÎ™® ÎîîÎ†âÌÑ∞Î¶¨($targetSkillsDir)Î•º ÎåÄÏÉÅÏúºÎ°ú ÏßÄÏ†ïÌï¥ Ï§ëÏ≤© Î≥µÏÇ¨(<skill>\<skill>) Î∞©ÏßÄ
+        Copy-Item -Path $skill.FullName -Destination $targetSkillsDir -Recurse -Force
     }
 } else {
     Write-Host "[!] Warning: skills directory not found in source directory." -ForegroundColor Red
 }
 
-# 4. æ»¿¸ Ω∫≈©∏≥∆Æ ∫πªÁ (~/.gemini/scripts)
+# 4. ÏïàÏ†Ñ Ïä§ÌÅ¨Î¶ΩÌä∏ Î≥µÏÇ¨ (~/.gemini/scripts)
 if (Test-Path $sourceScriptsDir) {
     $scripts = Get-ChildItem -Path $sourceScriptsDir -File
     Write-Host "[+] Found $($scripts.Count) scripts to deploy..." -ForegroundColor Green
-    
+
     foreach ($s in $scripts) {
         $scriptDest = Join-Path $targetScriptsDir $s.Name
         Write-Host "    -> Deploying Script: $($s.Name)" -ForegroundColor Gray
@@ -70,26 +85,74 @@ if (Test-Path $sourceScriptsDir) {
     Write-Host "[!] Warning: scripts directory not found in source directory." -ForegroundColor Red
 }
 
-# 5. hooks.json ∫πªÁ π◊ µø¿˚ ∞Ê∑Œ ¿˚øÎ (øµ±∏ ªË¡¶ ¬˜¥‹ ∞°µÂ »≈)
+# 5. hooks.json Î≥µÏÇ¨ Î∞è ÎèôÏ†Å Í≤ΩÎ°ú Ï†ÅÏö© (ÏòÅÍµ¨ ÏÇ≠Ï†ú Ï∞®Îã® Í∞ÄÎìú ÌõÖ)
 if (Test-Path $sourceHooksJson) {
     Write-Host "[+] Configuring delete-guard hook (hooks.json)..." -ForegroundColor Green
     $hookTemplate = Get-Content $sourceHooksJson -Raw -Encoding UTF8
     $escapedScriptsDir = $targetScriptsDir -replace '\\', '\\\\'
     $hookProcessed = $hookTemplate.Replace("{{SCRIPTS_DIR}}", $escapedScriptsDir)
-    
+
     $hookDest1 = Join-Path $targetGeminiDir "hooks.json"
     $hookDest2 = Join-Path $targetConfigDir "hooks.json"
-    Set-Content -Path $hookDest1 -Value $hookProcessed -Encoding UTF8
-    Set-Content -Path $hookDest2 -Value $hookProcessed -Encoding UTF8
+    $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+    [System.IO.File]::WriteAllText($hookDest1, $hookProcessed, $utf8NoBom)
+    [System.IO.File]::WriteAllText($hookDest2, $hookProcessed, $utf8NoBom)
     Write-Host "    -> Hooks installed to $hookDest1 and $hookDest2" -ForegroundColor Gray
 }
 
-# 6. Windows User PATHø° scripts µ∑∫≈Õ∏Æ µÓ∑œ (recycle ∏Ì∑…æÓ ¿¸ø™ »∞º∫»≠)
+# 6. config.template.json Í∏∞Î∞ò Antigravity userSettings Î≥ëÌï© Ï†ÅÏö©
+$targetConfigJson = Join-Path $targetConfigDir "config.json"
+if (Test-Path $sourceConfigTemplate) {
+    Write-Host "[+] Applying Antigravity userSettings from config.template.json..." -ForegroundColor Green
+    try {
+        $templateObj = Get-Content $sourceConfigTemplate -Raw -Encoding UTF8 | ConvertFrom-Json
+        if (Test-Path $targetConfigJson) {
+            $existingObj = Get-Content $targetConfigJson -Raw -Encoding UTF8 | ConvertFrom-Json
+        } else {
+            $existingObj = [PSCustomObject]@{}
+        }
+
+        if (-not ($existingObj.PSObject.Properties.Name -contains "userSettings") -or $null -eq $existingObj.userSettings) {
+            $existingObj | Add-Member -NotePropertyName "userSettings" -NotePropertyValue ([PSCustomObject]@{}) -Force
+        }
+
+        foreach ($prop in $templateObj.userSettings.PSObject.Properties) {
+            if ($prop.Name -eq "globalPermissionGrants") {
+                if (-not ($existingObj.userSettings.PSObject.Properties.Name -contains "globalPermissionGrants") -or $null -eq $existingObj.userSettings.globalPermissionGrants) {
+                    $existingObj.userSettings | Add-Member -NotePropertyName "globalPermissionGrants" -NotePropertyValue ([PSCustomObject]@{ allow = @() }) -Force
+                }
+                $mergedAllow = @()
+                if ($existingObj.userSettings.globalPermissionGrants.allow) {
+                    $mergedAllow += $existingObj.userSettings.globalPermissionGrants.allow
+                }
+                foreach ($grant in $prop.Value.allow) {
+                    if ($mergedAllow -notcontains $grant) {
+                        $mergedAllow += $grant
+                    }
+                }
+                $existingObj.userSettings.globalPermissionGrants | Add-Member -NotePropertyName "allow" -NotePropertyValue $mergedAllow -Force
+            } else {
+                $existingObj.userSettings | Add-Member -NotePropertyName $prop.Name -NotePropertyValue $prop.Value -Force
+            }
+        }
+
+        $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+        $jsonOut = $existingObj | ConvertTo-Json -Depth 10
+        [System.IO.File]::WriteAllText($targetConfigJson, $jsonOut + "`n", $utf8NoBom)
+        Write-Host "    -> Merged userSettings into $targetConfigJson" -ForegroundColor Gray
+    } catch {
+        Write-Host "[!] Warning: Could not merge config.template.json: $_" -ForegroundColor Yellow
+    }
+}
+
+# 7. Windows User PATHÏóê scripts ÎîîÎ†âÌÑ∞Î¶¨ Îì±Î°ù (recycle Î™ÖÎ†πÏñ¥ Ï†ÑÏó≠ ÌôúÏÑ±Ìôî)
 try {
     $userPath = [Environment]::GetEnvironmentVariable("Path", "User")
-    if ($userPath -notlike "*$targetScriptsDir*") {
+    $pathEntries = @()
+    if ($userPath) { $pathEntries = $userPath -split ';' | Where-Object { $_ -ne '' } }
+    if ($pathEntries -notcontains $targetScriptsDir) {
         Write-Host "[+] Adding scripts directory to User PATH for 'recycle' command..." -ForegroundColor Yellow
-        $newUserPath = if ($userPath) { "$userPath;$targetScriptsDir" } else { $targetScriptsDir }
+        $newUserPath = if ($userPath) { "$($userPath.TrimEnd(';'));$targetScriptsDir" } else { $targetScriptsDir }
         [Environment]::SetEnvironmentVariable("Path", $newUserPath, "User")
         $env:Path += ";$targetScriptsDir"
         Write-Host "    -> User PATH successfully updated!" -ForegroundColor Green
@@ -100,22 +163,59 @@ try {
     Write-Host "[!] Notice: Could not update User PATH automatically: $_" -ForegroundColor Yellow
 }
 
-# 7. ∞À¡ı π◊ ∞·∞˙ ∫∏∞Ì
+# 8. ÏÑ§Ïπò Í≤ÄÏ¶ù Î∞è ÌïÑÏàò ÌîÑÎ°úÍ∑∏Îû®(ego-browser, Python, Node.js, Git) Ï†êÍ≤Ä
 Write-Host ""
 Write-Host "==========================================================" -ForegroundColor Cyan
-Write-Host "  Deployment Summary & Verification" -ForegroundColor Cyan
+Write-Host "  Deployment Summary & Prerequisite Check" -ForegroundColor Cyan
 Write-Host "==========================================================" -ForegroundColor Cyan
 
-$installedGeminiMd = Test-Path (Join-Path $targetConfigDir "GEMINI.md")
+$installedGeminiMd1 = Test-Path (Join-Path $targetGeminiDir "GEMINI.md")
+$installedGeminiMd2 = Test-Path (Join-Path $targetConfigDir "GEMINI.md")
 $installedSkillsCount = (Get-ChildItem -Path $targetSkillsDir -Directory -ErrorAction SilentlyContinue).Count
 $installedScriptsCount = (Get-ChildItem -Path $targetScriptsDir -File -ErrorAction SilentlyContinue).Count
 $installedHook = Test-Path (Join-Path $targetConfigDir "hooks.json")
+$installedConfig = Test-Path $targetConfigJson
 
-Write-Host "  - GEMINI.md Status  : $(if ($installedGeminiMd) { 'Installed [OK]' } else { 'Failed [X]' })" -ForegroundColor $(if ($installedGeminiMd) { 'Green' } else { 'Red' })
+$hasPython = $null -ne (Get-Command python -ErrorAction SilentlyContinue)
+$hasGit = $null -ne (Get-Command git -ErrorAction SilentlyContinue)
+$hasNode = $null -ne (Get-Command node -ErrorAction SilentlyContinue)
+$hasEgoBrowser = $null -ne (Get-Command ego-browser -ErrorAction SilentlyContinue)
+
+Write-Host "  - GEMINI.md Status  : $(if ($installedGeminiMd1 -and $installedGeminiMd2) { 'Installed [OK]' } else { 'Failed [X]' })" -ForegroundColor $(if ($installedGeminiMd1 -and $installedGeminiMd2) { 'Green' } else { 'Red' })
 Write-Host "  - Installed Skills  : $installedSkillsCount skills active" -ForegroundColor Green
 Write-Host "  - Installed Scripts : $installedScriptsCount scripts active ($targetScriptsDir)" -ForegroundColor Green
-Write-Host "  - Delete Guard Hook : $(if ($installedHook) { 'Active [OK]' } else { 'Not Installed [X]' })" -ForegroundColor Green
+Write-Host "  - Delete Guard Hook : $(if ($installedHook) { 'Active [OK]' } else { 'Not Installed [X]' })" -ForegroundColor $(if ($installedHook) { 'Green' } else { 'Red' })
+Write-Host "  - User Settings     : $(if ($installedConfig) { 'Configured [OK]' } else { 'Not Configured [X]' })" -ForegroundColor $(if ($installedConfig) { 'Green' } else { 'Yellow' })
+Write-Host "----------------------------------------------------------" -ForegroundColor DarkGray
+Write-Host "  - Python 3          : $(if ($hasPython) { 'Ready [OK]' } else { 'MISSING [!] (Required for delete-guard hook & Python skills)' })" -ForegroundColor $(if ($hasPython) { 'Green' } else { 'Red' })
+Write-Host "  - Git               : $(if ($hasGit) { 'Ready [OK]' } else { 'MISSING [!]' })" -ForegroundColor $(if ($hasGit) { 'Green' } else { 'Yellow' })
+Write-Host "  - Node.js           : $(if ($hasNode) { 'Ready [OK]' } else { 'MISSING [!] (Required for npx MCP tools)' })" -ForegroundColor $(if ($hasNode) { 'Green' } else { 'Yellow' })
+Write-Host "  - ego-browser       : $(if ($hasEgoBrowser) { 'Ready [OK]' } else { 'NOT INSTALLED [!] (Action Required)' })" -ForegroundColor $(if ($hasEgoBrowser) { 'Green' } else { 'Yellow' })
+
+if (-not $hasEgoBrowser) {
+    Write-Host ""
+    Write-Host "[!] ACTION REQUIRED: ego-browser (ego lite) is not installed or not on PATH." -ForegroundColor Yellow
+    Write-Host "    1. Download and install ego lite from: https://lite.ego.app/" -ForegroundColor White
+    Write-Host "    2. Launch ego lite and complete the first-run onboarding in the GUI." -ForegroundColor White
+    Write-Host "    3. Open a NEW terminal and verify:" -ForegroundColor White
+    Write-Host "       Get-Command ego-browser" -ForegroundColor Cyan
+    Write-Host "       ego-browser nodejs -e `"console.log('ego-browser ready')`"" -ForegroundColor Cyan
+    Write-Host "       ego-browser skill" -ForegroundColor Cyan
+}
+
+$mcpConfigPath = Join-Path $targetConfigDir "mcp_config.json"
+$hasReaMcp = $false
+if (Test-Path $mcpConfigPath) {
+    $mcpRaw = Get-Content $mcpConfigPath -Raw -Encoding UTF8
+    if ($mcpRaw -match '"rea"') { $hasReaMcp = $true }
+}
+if (-not $hasReaMcp) {
+    Write-Host ""
+    Write-Host "[i] Optional MCP Setup (reverse-engineer-anything):" -ForegroundColor Gray
+    Write-Host "    Run: npx -y rea-agents setup --client antigravity" -ForegroundColor Gray
+}
+
 Write-Host ""
-Write-Host "Antigravity environment has been successfully configured!" -ForegroundColor Cyan
+Write-Host "Antigravity environment has been configured!" -ForegroundColor Cyan
 Write-Host "Please start a new chat session to apply all settings." -ForegroundColor Yellow
 Write-Host "==========================================================" -ForegroundColor Cyan
